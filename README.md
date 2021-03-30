@@ -1,6 +1,6 @@
 # Brain Tumor
 
-<img src="/images/header.jpg" width="500">
+<img src="/images/header.jpg" width="600">
 
 ---
 
