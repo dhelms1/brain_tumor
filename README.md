@@ -1,6 +1,6 @@
-# Brain Tumor
+# Brain Tumor Detection
 
-<img src="/images/header.jpg" width="600">
+<img src="/images/header.jpg" width="550">
 
 ---
 
