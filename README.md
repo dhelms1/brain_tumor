@@ -17,7 +17,7 @@ The dataset comes from [Kaggle](https://www.kaggle.com/sartajbhuvaji/brain-tumor
 #### Data Formatting
 Although the data comes seperated into subdirectories than be directly loaded into an ImageDataGenerator object, they were read in using [OpenCV](https://docs.opencv.org/master/) and put into TensorFlow Datasets for practice. The 2870 training images are divided into a training and validation set using a 20% split, while the 394 testing images remain unsplit. We have also augmented the training images to apply random rotations, brightness, and contrast to strength the models training. But the valiation and testing images are only converted to tensors and normalized. Below are the first 25 examples from the training split after augmentation:
 
-<img src="/images/train_images.jpg" width="650">
+<img src="/images/train_images.jpg" width="750">
 
 The training and validation images are converted into *tfrecords* files in order to be uploaded to **S3**, while the testing images remain as a TensorFlow Dataset since they will be used within the notebook on the deployed model (not uploaded to S3).
 
