@@ -2,6 +2,7 @@ import tensorflow as tf
 import numpy as np
 import argparse
 import os
+import json
 AUTOTUNE = tf.data.AUTOTUNE
 
 def tfrecord_reader(record):
@@ -37,20 +38,36 @@ def create_dataset(data_dir, BATCH_SIZE):
     dataset = dataset.batch(BATCH_SIZE)
     return dataset
 
-def model(X_train, y_train, X_val, y_val):
+def model(train_dataset, val_dataset, epochs):
     '''
-    Create a TensorFlow model and train/validate on the given data.
+    Create a TensorFlow model and train/validate on the given data. Returns
+    the final model.
     '''
-    # IMPORT MODEL (or build)  
+    # CREATE MODEL  
     
     return model
 
 if __name__ == "__main__":
     
-    # add parser
+    parser = argparse.ArgumentParser()
     
-    X_train, y_train = create_dataset(train_dir, BATCH_SIZE)
-    X_val, y_val = create_dataset(val_dir, BATCH_SIZE)
+    parser.add_argument('--batch_size', type=int, default=32, metavar='N',
+                        help='input batch size for dataset (default=32)')
+    parser.add_argument('--epochs', type=int, default=15, metavar='N',
+                        help='input epochs for training (default=15)')
+    parser.add_argument('--hosts', type=list, default=json.loads(os.environ['SM_HOSTS']))
+    parser.add_argument('--current-host', type=str, default=os.environ['SM_CURRENT_HOST'])
+    parser.add_argument('--model-dir', type=str, default=os.environ['SM_MODEL_DIR'])
+    parser.add_argument('--data-dir', type=str, default=os.environ['SM_CHANNEL_TRAINING'])
+    parser.add_argument('--num-gpus', type=int, default=os.environ['SM_NUM_GPUS'])
     
-    model = model(X_train, y_train, X_val, y_val)
+    args = parser.parse_args()
+    
+    train_dir = os.path.join(args.data_dir, 'train_images.tfrecords')
+    val_dir = os.path.join(args.data_dir, 'val_images.tfrecords')
+    
+    train_dataset = create_dataset(train_dir, args.batch_size)
+    val_dataset = create_dataset(val_dir, args.batch_size)
+    
+    model = model(train_dataset, val_dataset, args.epochs)
 
