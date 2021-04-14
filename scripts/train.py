@@ -38,7 +38,7 @@ def create_dataset(data_dir, BATCH_SIZE):
     dataset = dataset.batch(BATCH_SIZE)
     return dataset
 
-def model(train_dataset, val_dataset, epochs):
+def model(train_dataset, val_dataset, class_weights, epochs):
     '''
     Create a TensorFlow model and train/validate on the given data. Returns
     the final model.
@@ -55,6 +55,9 @@ if __name__ == "__main__":
                         help='input batch size for dataset (default=32)')
     parser.add_argument('--epochs', type=int, default=15, metavar='N',
                         help='input epochs for training (default=15)')
+    parser.add_argument('--class_weights', type=float, default=None, metavar='N',
+                        help='class weights for training (default=None)')
+    
     parser.add_argument('--hosts', type=list, default=json.loads(os.environ['SM_HOSTS']))
     parser.add_argument('--current-host', type=str, default=os.environ['SM_CURRENT_HOST'])
     parser.add_argument('--model-dir', type=str, default=os.environ['SM_MODEL_DIR'])
@@ -63,11 +66,17 @@ if __name__ == "__main__":
     
     args = parser.parse_args()
     
+    # Create training and validation datasets
     train_dir = os.path.join(args.data_dir, 'train_images.tfrecords')
     val_dir = os.path.join(args.data_dir, 'val_images.tfrecords')
     
     train_dataset = create_dataset(train_dir, args.batch_size)
     val_dataset = create_dataset(val_dir, args.batch_size)
     
-    model = model(train_dataset, val_dataset, args.epochs)
+    # Create tensorflow model and train/validate
+    model = model(train_dataset, val_dataset, args.class_weights, args.epochs)
+    
+    # Save model
+    model_path = os.path.join(args.model_dir, 'my_model')
+    model.save(model_path)
 
