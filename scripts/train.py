@@ -1,9 +1,12 @@
 import tensorflow as tf
+from tensorflow.keras.callbacks import EarlyStopping, ReduceLROnPlateau
 import numpy as np
 import argparse
 import os
 import json
 AUTOTUNE = tf.data.AUTOTUNE
+
+from model import ImageClassifier
 
 def tfrecord_reader(record):
     '''
@@ -38,12 +41,31 @@ def create_dataset(data_dir, BATCH_SIZE):
     dataset = dataset.batch(BATCH_SIZE)
     return dataset
 
-def model(train_dataset, val_dataset, class_weights, epochs):
+def model(train_dataset, val_dataset, epochs):
     '''
     Create a TensorFlow model and train/validate on the given data. Returns
     the final model.
     '''
-    # CREATE MODEL  
+    model = ImageClassifier()
+    
+    model.compile(optimizer='adam',
+                  loss='sparse_categorical_crossentropy',
+                  metrics=['accuracy'])
+    
+    early_stop = EarlyStopping(monitor='val_loss', mode='min', patience=4)
+    lr_reduction = ReduceLROnPlateau(monitor='val_loss', patience = 2, verbose=1, 
+                                     factor=0.3, min_lr=0.000001)
+    
+    # Load class weights
+    weights = np.load('./class_weights.npy')
+    class_weights = dict(zip([0,1,2,3], weights))
+    
+    model.fit(x=train_dataset, 
+              epochs=epochs, 
+              validation_data=val_dataset, 
+              class_weight=class_weights, 
+              verbose=1,
+              callbacks=[early_stop, lr_reduction])
     
     return model
 
@@ -55,8 +77,6 @@ if __name__ == "__main__":
                         help='input batch size for dataset (default=32)')
     parser.add_argument('--epochs', type=int, default=15, metavar='N',
                         help='input epochs for training (default=15)')
-    parser.add_argument('--class_weights', type=float, default=None, metavar='N',
-                        help='class weights for training (default=None)')
     
     parser.add_argument('--hosts', type=list, default=json.loads(os.environ['SM_HOSTS']))
     parser.add_argument('--current-host', type=str, default=os.environ['SM_CURRENT_HOST'])
@@ -74,9 +94,8 @@ if __name__ == "__main__":
     val_dataset = create_dataset(val_dir, args.batch_size)
     
     # Create tensorflow model and train/validate
-    model = model(train_dataset, val_dataset, args.class_weights, args.epochs)
+    model = model(train_dataset, val_dataset, args.epochs)
     
     # Save model
-    model_path = os.path.join(args.model_dir, 'my_model')
-    model.save(model_path)
+    model.save(os.path.join(args.model_dir, '000000001'), 'my_model.h5')
 
