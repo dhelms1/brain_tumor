@@ -6,7 +6,7 @@ import os
 import json
 AUTOTUNE = tf.data.AUTOTUNE
 
-from model import ImageClassifier
+from model import EfficientNetClassifier
 
 def tfrecord_reader(record):
     '''
@@ -18,9 +18,9 @@ def tfrecord_reader(record):
         'image_raw': tf.io.FixedLenFeature([], tf.string),
     }
     
-    parsed = tf.parse_single_example(record, features)
-    return ({'data': tf.io.parse_tensor(parsed['image_raw'], tf.float32)}, 
-            parsed['label'].numpy())
+    parsed = tf.io.parse_single_example(record, features)
+    label = tf.cast(parsed['label'], tf.int32)
+    return tf.io.parse_tensor(parsed['image_raw'], tf.float32), tf.one_hot(label, 4)
 
 def load_data(data_dir):
     '''
@@ -36,35 +36,26 @@ def create_dataset(data_dir, BATCH_SIZE):
     into batches of specified size.
     '''
     dataset = load_data(data_dir)
-    dataset = dataset.shuffle(1000)
     dataset = dataset.prefetch(buffer_size=AUTOTUNE)
     dataset = dataset.batch(BATCH_SIZE)
     return dataset
 
-def model(train_dataset, val_dataset, epochs):
+def model(train_dataset, val_dataset, class_weights, epochs):
     '''
     Create a TensorFlow model and train/validate on the given data. Returns
     the final model.
     '''
-    model = ImageClassifier()
-    
-    model.compile(optimizer='adam',
-                  loss='sparse_categorical_crossentropy',
-                  metrics=['accuracy'])
-    
-    early_stop = EarlyStopping(monitor='val_loss', mode='min', patience=4)
+    model = EfficientNetClassifier()
+        
+    early_stop = EarlyStopping(monitor='val_loss', mode='min', patience=5)
     lr_reduction = ReduceLROnPlateau(monitor='val_loss', patience = 2, verbose=1, 
                                      factor=0.3, min_lr=0.000001)
-    
-    # Load class weights
-    weights = np.load('./class_weights.npy')
-    class_weights = dict(zip([0,1,2,3], weights))
     
     model.fit(x=train_dataset, 
               epochs=epochs, 
               validation_data=val_dataset, 
               class_weight=class_weights, 
-              verbose=1,
+              verbose=2,
               callbacks=[early_stop, lr_reduction])
     
     return model
@@ -79,10 +70,11 @@ if __name__ == "__main__":
                         help='input epochs for training (default=15)')
     
     parser.add_argument('--hosts', type=list, default=json.loads(os.environ['SM_HOSTS']))
-    parser.add_argument('--current-host', type=str, default=os.environ['SM_CURRENT_HOST'])
-    parser.add_argument('--model-dir', type=str, default=os.environ['SM_MODEL_DIR'])
-    parser.add_argument('--data-dir', type=str, default=os.environ['SM_CHANNEL_TRAINING'])
-    parser.add_argument('--num-gpus', type=int, default=os.environ['SM_NUM_GPUS'])
+    parser.add_argument('--current_host', type=str, default=os.environ['SM_CURRENT_HOST'])
+    parser.add_argument('--model_dir', type=str)
+    parser.add_argument('--sm_model_dir', type=str, default=os.environ['SM_MODEL_DIR'])
+    parser.add_argument('--data_dir', type=str, default=os.environ['SM_CHANNEL_TRAINING'])
+    parser.add_argument('--num_gpus', type=int, default=os.environ['SM_NUM_GPUS'])
     
     args = parser.parse_args()
     
@@ -93,9 +85,12 @@ if __name__ == "__main__":
     train_dataset = create_dataset(train_dir, args.batch_size)
     val_dataset = create_dataset(val_dir, args.batch_size)
     
+    weights = np.load(os.path.join(args.data_dir, 'class_weights.npy'))
+    class_weights = dict(zip([0,1,2,3], weights))
+    
     # Create tensorflow model and train/validate
-    model = model(train_dataset, val_dataset, args.epochs)
+    model = model(train_dataset, val_dataset, class_weights, args.epochs)
     
     # Save model
-    model.save(os.path.join(args.model_dir, '000000001'), 'my_model.h5')
+    model.save(os.path.join(args.sm_model_dir, '000000001'))
 

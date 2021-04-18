@@ -1,24 +1,20 @@
-import tensorflow as tf
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Dense, Conv2D, Flatten, MaxPooling2D, Dense
+from tensorflow.keras.applications import EfficientNetB0
+from tensorflow.keras import layers, models
+from tensorflow.keras.optimizers import Adam
 IMG_SIZE = 224
 
-def ImageClassifier():
+def EfficientNetClassifier():
     '''
-    Create a simple CNN to be used for training.
+    Using transfer learning, create an EfficientNetB0 model to be used. We
+    will update the output for the model as well as unfreeze some of the final
+    15 layers to be trainined and learn more low level features in our images.
     '''
-    model = Sequential()
-    model.add(Conv2D(32, (3,3), activation='relu', input_shape=(IMG_SIZE, IMG_SIZE, 3)))
-    model.add(MaxPooling2D((2, 2)))
-    model.add(Conv2D(32, (3,3), activation='relu'))
-    model.add(MaxPooling2D((2, 2)))
-    model.add(Conv2D(64, (3,3), activation='relu'))
-    model.add(MaxPooling2D((2, 2)))
-    model.add(Flatten())
-    model.add(Dense(128, activation='relu'))
-    model.add(Dense(64, activation='relu'))
-    model.add(Dropout(0.2))
-    model.add(Dense(4, activation='softmax'))
+    effnetb0 = EfficientNetB0(weights='imagenet', include_top=False, input_shape=(IMG_SIZE, IMG_SIZE, 3))
+    model = layers.GlobalAveragePooling2D()(effnetb0.output)
+    model = layers.Dropout(0.5)(model)
+    model = layers.Dense(4, activation='softmax')(model)
+    model = models.Model(inputs=effnetb0.input, outputs=model)
+    model.compile(optimizer='Adam', loss='categorical_crossentropy', metrics=['accuracy'])
     
     return model
     
