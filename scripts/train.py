@@ -21,7 +21,7 @@ def tfrecord_reader(record):
     
     parsed = tf.io.parse_single_example(record, features)
     label = tf.cast(parsed['label'], tf.int32)
-    return tf.io.parse_tensor(parsed['image_raw'], tf.float32), tf.one_hot(label, 4)
+    return tf.io.parse_tensor(parsed['image_raw'], tf.uint8), tf.one_hot(label, 4)
 
 def load_data(data_dir):
     '''
@@ -52,7 +52,7 @@ def model(train_dataset, val_dataset, class_weights, epochs):
         
     early_stop = EarlyStopping(monitor='val_loss', mode='min', patience=5)
     lr_reduction = ReduceLROnPlateau(monitor='val_loss', patience = 2, verbose=1, 
-                                     factor=0.3, min_lr=0.000001)
+                                     factor=0.2, min_lr=0.000001)
     
     model.fit(x=train_dataset,
               epochs=epochs, 
