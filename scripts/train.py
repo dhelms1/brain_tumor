@@ -5,6 +5,7 @@ import argparse
 import os
 import json
 AUTOTUNE = tf.data.AUTOTUNE
+TRAIN_BUFFER = 2296
 
 from model import EfficientNetClassifier
 
@@ -30,13 +31,15 @@ def load_data(data_dir):
     data = data.map(tfrecord_reader)
     return data
 
-def create_dataset(data_dir, BATCH_SIZE):
+def create_dataset(data_dir, BATCH_SIZE, train=False):
     '''
     Create and parse the tfrecord file for a given dataset. Turn dataset
     into batches of specified size.
     '''
     dataset = load_data(data_dir)
     dataset = dataset.prefetch(buffer_size=AUTOTUNE)
+    if train:
+        dataset = dataset.shuffle(TRAIN_BUFFER)
     dataset = dataset.batch(BATCH_SIZE)
     return dataset
 
@@ -51,11 +54,11 @@ def model(train_dataset, val_dataset, class_weights, epochs):
     lr_reduction = ReduceLROnPlateau(monitor='val_loss', patience = 2, verbose=1, 
                                      factor=0.3, min_lr=0.000001)
     
-    model.fit(x=train_dataset, 
+    model.fit(x=train_dataset,
               epochs=epochs, 
-              validation_data=val_dataset, 
-              class_weight=class_weights, 
+              validation_data=val_dataset,
               verbose=2,
+              class_weight=class_weights,
               callbacks=[early_stop, lr_reduction])
     
     return model
@@ -82,7 +85,7 @@ if __name__ == "__main__":
     train_dir = os.path.join(args.data_dir, 'train_images.tfrecords')
     val_dir = os.path.join(args.data_dir, 'val_images.tfrecords')
     
-    train_dataset = create_dataset(train_dir, args.batch_size)
+    train_dataset = create_dataset(train_dir, args.batch_size, True)
     val_dataset = create_dataset(val_dir, args.batch_size)
     
     weights = np.load(os.path.join(args.data_dir, 'class_weights.npy'))

@@ -11,7 +11,7 @@ def EfficientNetClassifier():
     '''
     effnetb0 = EfficientNetB0(weights='imagenet', include_top=False, input_shape=(IMG_SIZE, IMG_SIZE, 3))
     model = layers.GlobalAveragePooling2D()(effnetb0.output)
-    model = layers.Dropout(0.5)(model)
+    model = layers.Dropout(0.2)(model)
     model = layers.Dense(4, activation='softmax')(model)
     model = models.Model(inputs=effnetb0.input, outputs=model)
     model.compile(optimizer='Adam', loss='categorical_crossentropy', metrics=['accuracy'])
