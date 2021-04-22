@@ -25,16 +25,18 @@ Although the data comes seperated into subdirectories that could be directly upl
 #### Setup
 Both the training and model files are within the **scripts** directory. The *model* script creates our [EfficientNetB0](https://keras.io/api/applications/efficientnet/#efficientnetb0-function), replacing the output with a dropout and new dense layer to handle our 4 classes. Below is the function used to create the model using the trained weights from ImageNet.
 
-<img src="/notebook_images/model_summary.jpg" width="600">
+<img src="/notebook_images/model_summary.jpg" width="700">
 
 The *train* script contains the Python file used to load the data from S3, convert from a TFRecord file back into a Dataset, and train/validate the model. The epochs and batch size are passed as hyperparameters from the SageMaker TensorFlow object within the main notebook. Both Early Stopping and Learning Rate Reduction are implemented for the model, with learning rate being reduced 3 times and early stopping occuring at epoch 16 when validation loss plateaued. 
 
 #### Training Results
 On epoch 1, the initial training accuracy was 85.1% with a validation accuracy of 62.37%. After epoch 5, 13, and 15 the learning rate was reduced from an initial value of 0.001 to a final value of 0.000008. Early stopping ended our model training after epoch 16, where the validation loss plateaued aroung 0.044. The final results from training are:
 
-| Train Loss | 0.0036 |
-| Train Accuracy | 99.91% |
-| Validation Loss | 0.0431 |
+| Type                | Value  |
+| ------------------- | ------ |
+| Train Loss          | 0.0036 |
+| Train Accuracy      | 99.91% |
+| Validation Loss     | 0.0431 |
 | Validation Accuracy | 98.61% |
 
 With such a high training accuracy, I would be sceptical that the model is overfitting. But since are validation accuracy is within 1.5% of the training accuracy, it leads me to think that the model is performing well. This will be either confirmed or denied in the testing results section depending on the accuracy of the model of predicting with new data. The final model is saved to the default S3 bucket, which will be loaded back into the main notebook and used for predicting in the next section.
