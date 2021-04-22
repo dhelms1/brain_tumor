@@ -32,12 +32,10 @@ The *train* script contains the Python file used to load the data from S3, conve
 #### Training Results
 On epoch 1, the initial training accuracy was 85.1% with a validation accuracy of 62.37%. After epoch 5, 13, and 15 the learning rate was reduced from an initial value of 0.001 to a final value of 0.000008. Early stopping ended our model training after epoch 16, where the validation loss plateaued aroung 0.044. The final results from training are:
 
-| Type                | Value  |
-| ------------------- | ------ |
-| Train Loss          | 0.0036 |
-| Train Accuracy      | 99.91% |
-| Validation Loss     | 0.0431 |
-| Validation Accuracy | 98.61% |
+| Dataset    | Loss   | Accuracy |
+| ---------- | -----  | -------- |
+| Training   | 0.0036 | 99.91%   |
+| Validation | 0.0431 | 98.61%   |
 
 With such a high training accuracy, I would be sceptical that the model is overfitting. But since are validation accuracy is within 1.5% of the training accuracy, it leads me to think that the model is performing well. This will be either confirmed or denied in the testing results section depending on the accuracy of the model of predicting with new data. The final model is saved to the default S3 bucket, which will be loaded back into the main notebook and used for predicting in the next section.
 
