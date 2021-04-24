@@ -37,7 +37,7 @@ On epoch 1, the initial training accuracy was 85.1% with a validation accuracy o
 | Training   | 0.0036 | 99.91%   |
 | Validation | 0.0431 | 98.61%   |
 
-With such a high training accuracy, I would be sceptical that the model is overfitting. But since are validation accuracy is within 1.5% of the training accuracy, it leads me to think that the model is performing well. This will be either confirmed or denied in the testing results section depending on the accuracy of the model of predicting with new data. The final model is saved to the default S3 bucket, which will be loaded back into the main notebook and used for predicting in the next section.
+With such a high training accuracy, I would be skeptical that the model is overfitting. But since are validation accuracy is within 1.5% of the training accuracy, it leads me to think that the model is performing well. This will be either confirmed or denied in the testing results section depending on the accuracy of the model of predicting with new data. The final model is saved to the default S3 bucket, which will be loaded back into the main notebook and used for predicting in the next section.
 
 #### Testing Results
 
