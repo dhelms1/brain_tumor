@@ -27,7 +27,14 @@ Both the training and model files are within the **scripts** directory. The *mod
 
 <img src="/notebook_images/model_summary.jpg" width="700">
 
-The *train* script contains the Python file used to load the data from S3, convert from a TFRecord file back into a Dataset, and train/validate the model. The epochs and batch size are passed as hyperparameters from the SageMaker TensorFlow object within the main notebook. Both Early Stopping and Learning Rate Reduction are implemented for the model, with learning rate being reduced 3 times and early stopping occuring at epoch 16 when validation loss plateaued. 
+The *train* script contains the Python file used to load the data from S3, convert from a TFRecord file back into a Dataset, and train/validate the model. The epochs and batch size are passed as hyperparameters from the SageMaker TensorFlow object within the main notebook. Both Early Stopping and Learning Rate Reduction are implemented for the model, with learning rate being reduced 3 times and early stopping occuring at epoch 16 when validation loss plateaued. Class weights were also computed since there is a slight difference in the *no_tumor* class compared to the other three and we need the model to learn equally from each class. They are as follows:
+
+| Class      | Weight     | 
+| ---------- | ---------- | 
+| Glioma     | 0.86445783 |
+| Meningioma | 0.85928144 |
+| No Tumor   | 1.81072555 |
+| Pituitary  | 0.88717156 |
 
 #### Training Results
 On epoch 1, the initial training accuracy was 85.1% with a validation accuracy of 62.37%. After epoch 5, 13, and 15 the learning rate was reduced from an initial value of 0.001 to a final value of 0.000008. Early stopping ended our model training after epoch 16, where the validation loss plateaued aroung 0.044. The final results from training are:
@@ -40,7 +47,17 @@ On epoch 1, the initial training accuracy was 85.1% with a validation accuracy o
 With such a high training accuracy, I would be skeptical that the model is overfitting. But since are validation accuracy is within 1.5% of the training accuracy, it leads me to think that the model is performing well. This will be either confirmed or denied in the testing results section depending on the accuracy of the model of predicting with new data. The final model is saved to the default S3 bucket, which will be loaded back into the main notebook and used for predicting in the next section.
 
 #### Testing Results
+Testing images/labels (394 total) were loaded and saved into numpy arrays, which were then flattened and sent to the endpoint for predicting. The maximum probability from the predicted array was then taken and converted back into a string label corresponding to the true label. With a training/validation accuracy, I expected the testing accuracy to be a similar value. However, the final result was:
+
+| Dataset   | Accuracy |
+| --------- | -------- |
+| Testisng  | 73.86%   |
+
+Seeing how the accuracy for the testing set is much worse than the training/validation sets, we needed to explore further to see which classes were having issues. The results are as follows:
+
+<img src="/notebook_images/test_results.jpg" width="500"> <img src="/notebook_images/per_class_acc.jpg" width="500">
+
+Looking at the confusion matrix and per class accuracy above, we can see that the *glioma* and *pituitary* classes seem to be having issues with being seperated from the other classes. We seem to be getting around 100% accuracy for both meningioma and no tumor classes. However, pituitary hs around 65% accuracy and glioma has around 25% accuracy. On top of this, most the the misclassified images seem to have high prediction probabilities associated with them (90%+, refer to end of notebook for graph). However, other notebooks also seem to be getting a test accuracy ranging from 40% to 80%, so our model seems to be doing well in comparison to those. This leads me to believe that there could be an issue with the test set that is casuing this, since using the deployed model to predict on the validation set resulted in 99% accuracy (again, this could just be overfitting if our validation set is too similar to the training set).
 
 ---
 
-*README will be updated as project is worked on...*
