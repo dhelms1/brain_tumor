@@ -55,7 +55,7 @@ Testing images/labels (394 total) were loaded and saved into numpy arrays, which
 
 Seeing how the accuracy for the testing set is much worse than the training/validation sets, we needed to explore further to see which classes were having issues. The results are as follows:
 
-<img src="/notebook_images/test_results.jpg" width="500"> <img src="/notebook_images/per_class_acc.jpg" width="500">
+<img src="/notebook_images/test_results.jpg" width="500"> <img src="/notebook_images/per_class_acc.jpg" width="400">
 
 Looking at the confusion matrix and per class accuracy above, we can see that the *glioma* and *pituitary* classes seem to be having issues with being seperated from the other classes. We seem to be getting around 100% accuracy for both meningioma and no tumor classes. However, pituitary hs around 65% accuracy and glioma has around 25% accuracy. On top of this, most the the misclassified images seem to have high prediction probabilities associated with them (90%+, refer to end of notebook for graph). However, other notebooks also seem to be getting a test accuracy ranging from 40% to 80%, so our model seems to be doing well in comparison to those. This leads me to believe that there could be an issue with the test set that is casuing this, since using the deployed model to predict on the validation set resulted in 99% accuracy (again, this could just be overfitting if our validation set is too similar to the training set).
 
