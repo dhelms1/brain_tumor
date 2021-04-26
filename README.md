@@ -51,7 +51,7 @@ Testing images/labels (394 total) were loaded and saved into numpy arrays, which
 
 | Dataset   | Accuracy |
 | --------- | -------- |
-| Testisng  | 73.86%   |
+| Testing  | 73.86%   |
 
 Seeing how the accuracy for the testing set is much worse than the training/validation sets, we needed to explore further to see which classes were having issues. The results are as follows:
 
