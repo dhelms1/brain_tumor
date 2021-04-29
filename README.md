@@ -12,10 +12,10 @@ MRI images are one of the main tools used for analyzing tumors in the human brai
 - Pituitary - a tumor that forms in the pituitary gland near the brain that can change hormone levels.
 
 ### Data
-The dataset comes from [Kaggle](https://www.kaggle.com/sartajbhuvaji/brain-tumor-classification-mri), but in order to move images directly into Amazon SageMaker they were clone from the original [GitHub](https://github.com/sartajbhuvaji/brain-tumor-classification-dataset) repository.
+The dataset comes from [Kaggle](https://www.kaggle.com/sartajbhuvaji/brain-tumor-classification-mri), but in order to move images directly into Amazon SageMaker they were cloned from the original [GitHub](https://github.com/sartajbhuvaji/brain-tumor-classification-dataset) repository.
 
 #### Data Formatting
-Although the data comes seperated into subdirectories that could be directly uploaded to S3 and read into an ImageDataGenerator object, they were read in using [OpenCV](https://docs.opencv.org/master/) and put into a TensorFlow Datasets to be converted to TFRecord files. The 2870 training images are divided into a training and validation set using a 20% split (2296 and 574, repsectively), while the 394 testing images remain unsplit. We have also augmented the training images to apply random rotations to strength the models training. The images were not normalized since we used EfficientNet for our model and batch normalization occurs within the layers (initially the images were normalized and this resulted in a 90% train and 10% validation accuracy). Below are the first 25 examples from the training split after augmentation:
+Although the data comes seperated into subdirectories that could be directly uploaded to S3 and read into an ImageDataGenerator object, they were read in using [OpenCV](https://docs.opencv.org/master/) and put into a TensorFlow Datasets to be converted to TFRecord files. The 2870 training images are divided into a training and validation set using a 80/20 split (2296 and 574, repsectively), while the 394 testing images remain unsplit. We have also augmented the training images to apply random rotations to strengthen the models learning. The images were not normalized since we used EfficientNet for our model and batch normalization occurs within the layers (initially the images were normalized and this resulted in a 90% train and 10% validation accuracy). Below are the first 25 examples from the training split after augmentation:
 
 <img src="/notebook_images/train_images.jpg" width="770">
 
@@ -23,7 +23,7 @@ Although the data comes seperated into subdirectories that could be directly upl
 
 ## Modeling
 #### Setup
-Both the training and model files are within the **scripts** directory. The *model* script creates our [EfficientNetB0](https://keras.io/api/applications/efficientnet/#efficientnetb0-function), replacing the output with a dropout and new dense layer to handle our 4 classes. Below is the function used to create the model using the trained weights from ImageNet.
+Both the training and model Python files are within the **scripts** directory. The *model* script creates our [EfficientNetB0](https://keras.io/api/applications/efficientnet/#efficientnetb0-function) architecture, replacing the output with a dropout and new dense layer to handle our 4 classes. Below is the function used to create the model using the pretrained weights from ImageNet.
 
 <img src="/notebook_images/model_summary.jpg" width="700">
 
@@ -37,7 +37,7 @@ The *train* script contains the Python file used to load the data from S3, conve
 | Pituitary  | 0.88717156 |
 
 #### Training Results
-On epoch 1, the initial training accuracy was 85.1% with a validation accuracy of 62.37%. After epoch 5, 13, and 15 the learning rate was reduced from an initial value of 0.001 to a final value of 0.000008. Early stopping ended our model training after epoch 16, where the validation loss plateaued aroung 0.044. The final results from training are:
+On epoch 1, the initial training accuracy was 85.1% with a validation accuracy of 62.37%. After epoch 5, 13, and 15 the learning rate was reduced from an initial value of 0.001 to a final value of 0.000008. Early stopping ended our models training after epoch 16, where the validation loss plateaued around 0.044. The final results from training are:
 
 | Dataset    | Loss   | Accuracy |
 | ---------- | -----  | -------- |
@@ -47,7 +47,7 @@ On epoch 1, the initial training accuracy was 85.1% with a validation accuracy o
 With such a high training accuracy, I would be skeptical that the model is overfitting. But since are validation accuracy is within 1.5% of the training accuracy, it leads me to think that the model is performing well. This will be either confirmed or denied in the testing results section depending on the accuracy of the model of predicting with new data. The final model is saved to the default S3 bucket, which will be loaded back into the main notebook and used for predicting in the next section.
 
 #### Testing Results
-Testing images/labels (394 total) were loaded and saved into numpy arrays, which were then flattened and sent to the endpoint for predicting. The maximum probability from the predicted array was then taken and converted back into a string label corresponding to the true label. With a training/validation accuracy, I expected the testing accuracy to be a similar value. However, the final result was:
+Testing images/labels (394 total) were loaded and saved into numpy arrays, which were then flattened and sent to the endpoint for predicting. The maximum probability from the predicted array was then taken and converted back into a string label corresponding to the true label. With a training/validation accuracy, I expected the testing accuracy to be a similar value. (*NOTE: refer to test_results directory to see dataframe containing each test images predicted probability/label, true label, and if it was correct*). However, the final result was:
 
 | Dataset   | Accuracy |
 | --------- | -------- |
