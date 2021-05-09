@@ -5,7 +5,7 @@
 ---
 
 ## Project Introduction & Goals
-MRI images are one of the main tools used for analyzing tumors in the human brain. Huge amounts of image data are generated through these scans, which need to be examined by a radiologist, and can be susceptible to diagnosis error due to complex MRI images. This is where the application of neural networks come in. Through CNN's, we are able to process images in order to extract features (such as tumors) from images that can help us correctly classifying the data. The purpose of this project will be to deploy a deep learning model using Amazon SageMaker that can accurately classify MRI brain tumor images into four different categories:
+MRI scans are one of the main tools used for analyzing tumors in the human brain. Huge amounts of image data are generated through these scans, which need to be examined by a radiologist, and can be susceptible to diagnosis error due to complex MRI images. This is where the application of neural networks come in. Through CNN's, we are able to process images in order to extract features (such as tumors) from images that can help us correctly classifying the data. The purpose of this project will be to deploy a deep learning model using Amazon SageMaker that can accurately classify MRI brain tumor scans into four different categories:
 - Glioma - a tumor made of astrocytes that occurs in the brain and spinal cord
 - Meningioma - a usually noncancerous tumor that arises from membranes surrounding the brain & spinal cord.
 - None - no tumor present in brain.
